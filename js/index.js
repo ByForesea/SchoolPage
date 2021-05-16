@@ -1,62 +1,90 @@
-(function($) {
 
-  $.fn.gCalReader = function(options) {
+var mycalendarId;
+var myapiKey;
+
+window.ready = jQuery(function ($) {
+
+  //設定文件
+  $.get("設定/Setting.txt", function (data) {
+    let settingarry = data.split("\n");
+    for (let index = 0; index < settingarry.length; index++) {
+      settingarry[index] = settingarry[index].replace(/^\s+|\s+$/g, '');
+    }
+    //apikey
+    let apikeynum = settingarry.indexOf("1.apikey連結:") + 1;
+    myapiKey = settingarry[apikeynum];
+    //calendarid
+    let calendaridnum = settingarry.indexOf("2.選擇要得行事曆:") + 1;
+    mycalendarId = settingarry[calendaridnum];
+    //get id apikey
+    $('#eventlist').gCalReader({
+
+      calendarId: mycalendarId,
+      apiKey: myapiKey,
+      sortDescending: false
+    });
+  });
+});
+
+
+(function ($) {
+  $.fn.gCalReader = function (options) {
     var $div = $(this);
 
     var defaults = $.extend({
-        calendarId: 'zh.taiwan#holiday@group.v.calendar.google.com',
-        apiKey: 'AIzaSyD53x-1GgVFK_AMaxnxmYcsK845GDrOJrs',
-        dateFormat: 'DayMonth',
-        dayformat:'Day',
-        errorMsg: 'No events in calendar',
-        maxEvents: 4,
-        futureEventsOnly: true,
-        sortDescending: true
-      },
+      calendarId: mycalendarId,
+      apiKey: myapiKey,
+      dateFormat: 'DayMonth',
+      dayformat: 'Day',
+      errorMsg: 'No events in calendar',
+      maxEvents: 4,
+      futureEventsOnly: true,
+      sortDescending: true
+    },
       options);
 
     var s = '';
     var feedUrl = 'https://www.googleapis.com/calendar/v3/calendars/' +
-      encodeURIComponent(defaults.calendarId.trim()) +'/events?key=' + defaults.apiKey +
+      encodeURIComponent(defaults.calendarId.trim()) + '/events?key=' + defaults.apiKey +
       '&orderBy=startTime&singleEvents=true';
-      if(defaults.futureEventsOnly) {
-        feedUrl+='&timeMin='+ new Date().toISOString();
-      }
+    if (defaults.futureEventsOnly) {
+      feedUrl += '&timeMin=' + new Date().toISOString();
+    }
 
     $.ajax({
       url: feedUrl,
       dataType: 'json',
-      success: function(data) {
-        if(defaults.sortDescending){
+      success: function (data) {
+        if (defaults.sortDescending) {
           data.items = data.items.reverse();
         }
         data.items = data.items.slice(0, defaults.maxEvents);
 
-        $.each(data.items, function(e, item) {
-          var eventdate = item.start.dateTime || item.start.date ||'';
+        $.each(data.items, function (e, item) {
+          var eventdate = item.start.dateTime || item.start.date || '';
           var summary = item.summary || '';
-					var description = item.description;
-					var location = item.location;
-         
+          var description = item.description;
+          var location = item.location;
+
           //時間 
-        
-					s='<div class="eventdate col-4  text-center px-2">'+ formatDate(eventdate, defaults.dateFormat.trim())+
-          '<div class="eventday text-center h4">'+formatDate(eventdate, defaults.dayformat.trim())+'</div>'
-          +'</div>';
-					// 活動
-          s +='<div class="eventtitle col-8 text-center align-self-center">' + summary + '</div>';
+
+          s = '<div class="eventdate col-4  text-center px-2">' + formatDate(eventdate, defaults.dateFormat.trim()) +
+            '<div class="eventday text-center h4">' + formatDate(eventdate, defaults.dayformat.trim()) + '</div>'
+            + '</div>';
+          // 活動
+          s += '<div class="eventtitle col-8 text-center align-self-center">' + summary + '</div>';
           // 地點
-          if(location) {
-						s +='<div class="location">At :' + location + '</div>';
-					}
+          if (location) {
+            s += '<div class="location">At :' + location + '</div>';
+          }
           //描述
-					if(description) {
-						s +='<div class="description">'+ description +'</div>';
-					}
-					$($div).append('<li class="row col-md-3 col-lg-12 canlendar-li justify-content-center shadow-sm bg-light rounded">' + s + '</li>');
+          if (description) {
+            s += '<div class="description">' + description + '</div>';
+          }
+          $($div).append('<li class="row col-md-3 col-lg-12 canlendar-li justify-content-center shadow-sm bg-light rounded">' + s + '</li>');
         });
       },
-      error: function(error) {
+      error: function (error) {
         $($div).append('<p>' + defaults.errorMsg + ' | ' + error + '</p>');
       }
     });
@@ -132,23 +160,23 @@
           fd = month + '/' + dayNum + '/' + year + ' ' + time;
           break;
         case 'DayMonth':
-          fd =calendar.months.full[
-            month] + ' ' ;
+          fd = calendar.months.full[
+            month] + ' ';
           break;
         case 'MonthDay':
-          fd = calendar.months.short[month] +'.'+ ' ' + dayNum;
+          fd = calendar.months.short[month] + '.' + ' ' + dayNum;
           break;
         case 'YearMonth':
           fd = calendar.months.full[month] + ' ' + year;
           break;
         case 'Month':
-            fd = calendar.days.short[d.getDay()]+'．'+calendar.months.short[month];
-            break;
+          fd = calendar.days.short[d.getDay()] + '．' + calendar.months.short[month];
+          break;
         case 'Day':
-            fd =dayNum;
-            break;
+          fd = dayNum;
+          break;
         default:
-          fd = calendar.days.full[d.getDay()] + ' ' +  '‧' + calendar.months.short[
+          fd = calendar.days.full[d.getDay()] + ' ' + '‧' + calendar.months.short[
             month] + ' ' + dayNum + ', ' + year + ' ' + time;
       }
 

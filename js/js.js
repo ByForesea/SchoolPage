@@ -12,12 +12,6 @@ function scrollFunction() {
     document.getElementById("logo").style.width = "25%";
     mybutton.style.display = "none";
   }
-
-  if (document.body.scrollTop > 650 || document.documentElement.scrollTop > 650) {
-    sidebar.style.position = "absolute";
-  } else {
-    sidebar.style.position = "fixed";
-  }
 }
 function topFunction() {
   document.body.scrollTop = 0; // For Safari
